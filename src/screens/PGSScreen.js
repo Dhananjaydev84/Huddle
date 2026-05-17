@@ -17,55 +17,40 @@ export function PGSScreen({ render }) {
   header.className = 'screen-header';
 
   const backButton = document.createElement('button');
-  backButton.className = 'ghost-button back-button';
+  backButton.className = 'back-button';
   backButton.type = 'button';
-  backButton.textContent = '← Back';
+  backButton.innerHTML = '<span class="material-symbols-outlined">arrow_back</span>';
   backButton.addEventListener('click', () => {
     state.screen = 'home';
     render();
   });
 
-  const title = document.createElement('h1');
-  title.textContent = 'Imposter Setup';
+  const title = document.createElement('span');
+  title.className = 'screen-header-center gradient-text';
+  title.textContent = 'HUDDLE';
 
-  header.append(backButton, title);
+  const menuButton = document.createElement('button');
+  menuButton.className = 'menu-button';
+  menuButton.type = 'button';
+  menuButton.innerHTML = '<span class="material-symbols-outlined">menu</span>';
+
+  header.append(backButton, title, menuButton);
+
+  const main = document.createElement('div');
+  main.className = 'pgs-main';
+
+  const titleSection = document.createElement('section');
+  titleSection.innerHTML = '<h2 class="screen-title text-on-surface">Imposter <span class="gradient-text">setup</span></h2>';
+
+  const grid = document.createElement('div');
+  grid.className = 'setup-grid';
 
   const playersSection = document.createElement('section');
   playersSection.className = 'setup-section';
 
-  const playersTitle = document.createElement('h2');
-  playersTitle.textContent = 'Players';
-
-  const playerList = document.createElement('div');
-  playerList.className = 'player-list';
-
-  if (state.players.length === 0) {
-    const empty = document.createElement('p');
-    empty.className = 'empty-state';
-    empty.textContent = 'Add players to start a huddle.';
-    playerList.append(empty);
-  } else {
-    state.players.forEach((player) => {
-      const row = document.createElement('div');
-      row.className = 'player-row';
-
-      const name = document.createElement('span');
-      name.textContent = player;
-
-      const remove = document.createElement('button');
-      remove.className = 'icon-button';
-      remove.type = 'button';
-      remove.setAttribute('aria-label', `Remove ${player}`);
-      remove.textContent = '✕';
-      remove.addEventListener('click', () => {
-        deletePlayer(player);
-        render();
-      });
-
-      row.append(name, remove);
-      playerList.append(row);
-    });
-  }
+  const playersTitle = document.createElement('span');
+  playersTitle.className = 'section-label';
+  playersTitle.textContent = 'Add players';
 
   const addForm = document.createElement('form');
   addForm.className = 'add-player';
@@ -73,129 +58,181 @@ export function PGSScreen({ render }) {
   const input = document.createElement('input');
   input.type = 'text';
   input.maxLength = 20;
-  input.placeholder = 'Player name';
+  input.placeholder = 'Enter name...';
   input.autocomplete = 'off';
 
   const addButton = document.createElement('button');
-  addButton.className = 'secondary-button';
   addButton.type = 'submit';
-  addButton.textContent = 'Add';
+  addButton.textContent = 'ADD';
 
   addForm.append(input, addButton);
   addForm.addEventListener('submit', (event) => {
     event.preventDefault();
-    addPlayer(input.value);
-    render();
+    if(input.value.trim()) {
+        addPlayer(input.value);
+        render();
+    }
   });
 
+  const playerList = document.createElement('div');
+  playerList.className = 'player-list';
+
+  state.players.forEach((player) => {
+    const row = document.createElement('div');
+    row.className = 'player-row';
+
+    const name = document.createElement('span');
+    name.textContent = player;
+
+    const remove = document.createElement('button');
+    remove.className = 'icon-button';
+    remove.type = 'button';
+    remove.innerHTML = '<span class="material-symbols-outlined" style="font-size: 16px;">close</span>';
+    remove.addEventListener('click', () => {
+      deletePlayer(player);
+      render();
+    });
+
+    row.append(name, remove);
+    playerList.append(row);
+  });
+
+  playersSection.append(playersTitle, addForm, playerList);
   if (state.players.length < 3) {
     const warning = document.createElement('p');
-    warning.className = 'warning-text';
-    warning.textContent = 'Need at least 3 players';
-    playersSection.append(playersTitle, playerList, addForm, warning);
-  } else {
-    playersSection.append(playersTitle, playerList, addForm);
+    warning.className = 'player-warning';
+    warning.textContent = 'Minimum of 3 players required';
+    playersSection.append(warning);
   }
 
-  const settingsSection = document.createElement('section');
-  settingsSection.className = 'setup-section';
+  const settingsRight = document.createElement('div');
+  settingsRight.style.display = 'flex';
+  settingsRight.style.flexDirection = 'column';
+  settingsRight.style.gap = '12px';
 
-  const settingsTitle = document.createElement('h2');
-  settingsTitle.textContent = 'Impostor Settings';
-
-  const impostorField = document.createElement('label');
-  impostorField.className = 'field-row';
-
+  const impostorField = document.createElement('section');
+  impostorField.className = 'setup-section';
+  
   const impostorLabel = document.createElement('span');
-  impostorLabel.textContent = 'Number of Impostors';
+  impostorLabel.className = 'section-label';
+  impostorLabel.textContent = 'Number of Imposters';
 
-  const select = document.createElement('select');
-  const maxImpostors = getMaxImpostors();
-  for (let count = 1; count <= maxImpostors; count += 1) {
-    const option = document.createElement('option');
-    option.value = String(count);
-    option.textContent = String(count);
-    option.selected = count === state.impostorCount;
-    select.append(option);
-  }
-  select.addEventListener('change', () => {
-    state.impostorCount = Number(select.value);
+  const impostorControl = document.createElement('div');
+  impostorControl.className = 'field-row';
+
+  const minusI = document.createElement('button');
+  minusI.innerHTML = '<span class="material-symbols-outlined" style="font-size: 16px;">remove</span>';
+  minusI.addEventListener('click', () => {
+      state.impostorCount = Math.max(1, state.impostorCount - 1);
+      render();
   });
 
-  impostorField.append(impostorLabel, select);
+  const valI = document.createElement('span');
+  valI.className = 'val';
+  valI.textContent = state.impostorCount;
 
-  const modeBlock = document.createElement('div');
-  modeBlock.className = 'field-stack';
+  const plusI = document.createElement('button');
+  plusI.innerHTML = '<span class="material-symbols-outlined" style="font-size: 16px;">add</span>';
+  plusI.addEventListener('click', () => {
+      const max = getMaxImpostors();
+      state.impostorCount = Math.min(max, state.impostorCount + 1);
+      render();
+  });
+
+  impostorControl.append(minusI, valI, plusI);
+  impostorField.append(impostorLabel, impostorControl);
+
+  const timerField = document.createElement('section');
+  timerField.className = 'setup-section';
+  
+  const timerLabelContainer = document.createElement('div');
+  timerLabelContainer.style.display = 'flex';
+  timerLabelContainer.style.justifyContent = 'space-between';
+  timerLabelContainer.innerHTML = '<span class="section-label">Time duration</span>';
+
+  const disableTimerBtn = document.createElement('button');
+  disableTimerBtn.style.fontSize = '10px';
+  disableTimerBtn.style.color = '#e3beb8';
+  disableTimerBtn.style.display = 'flex';
+  disableTimerBtn.style.alignItems = 'center';
+  disableTimerBtn.style.gap = '4px';
+  disableTimerBtn.style.border = '1px solid var(--s-outline-variant)';
+  disableTimerBtn.style.padding = '2px 6px';
+  disableTimerBtn.style.borderRadius = '8px';
+  disableTimerBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size: 12px;">timer_off</span> Disable';
+  timerLabelContainer.append(disableTimerBtn);
+
+  const timerControl = document.createElement('div');
+  timerControl.className = 'field-row';
+
+  const minusT = document.createElement('button');
+  minusT.innerHTML = '<span class="material-symbols-outlined" style="font-size: 16px;">keyboard_arrow_left</span>';
+  minusT.disabled = state.timerDuration <= 15;
+  minusT.addEventListener('click', () => {
+      state.timerDuration = Math.max(15, state.timerDuration - 15);
+      render();
+  });
+
+  const valTWrapper = document.createElement('div');
+  valTWrapper.style.display = 'flex';
+  valTWrapper.style.flexDirection = 'column';
+  valTWrapper.style.alignItems = 'center';
+  const valT = document.createElement('span');
+  valT.className = 'val';
+  const minutes = Math.floor(state.timerDuration / 60);
+  const seconds = String(state.timerDuration % 60).padStart(2, '0');
+  valT.textContent = `${minutes}:${seconds}`;
+  const unitT = document.createElement('span');
+  unitT.style.fontSize = '9px';
+  unitT.style.color = '#e3beb8';
+  unitT.textContent = 'MINUTES';
+  valTWrapper.append(valT, unitT);
+
+  const plusT = document.createElement('button');
+  plusT.innerHTML = '<span class="material-symbols-outlined" style="font-size: 16px;">keyboard_arrow_right</span>';
+  plusT.disabled = state.timerDuration >= 300;
+  plusT.addEventListener('click', () => {
+      state.timerDuration = Math.min(300, state.timerDuration + 15);
+      render();
+  });
+
+  timerControl.append(minusT, valTWrapper, plusT);
+  timerField.append(timerLabelContainer, timerControl);
+
+  settingsRight.append(impostorField, timerField);
+
+  const modeSection = document.createElement('section');
+  modeSection.className = 'setup-section';
 
   const modeLabel = document.createElement('span');
-  modeLabel.textContent = 'Impostor Gets';
+  modeLabel.className = 'section-label';
+  modeLabel.textContent = 'Imposter gets';
 
   const modes = document.createElement('div');
   modes.className = 'segmented-control';
 
   [
-    ['hint', 'Hint'],
-    ['similar', 'Similar Word'],
-    ['nothing', 'Nothing']
-  ].forEach(([value, label]) => {
+    ['hint', 'Hint', 'lightbulb'],
+    ['similar', 'Similar Word', 'record_voice_over'],
+    ['nothing', 'None', 'block']
+  ].forEach(([value, label, icon]) => {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = value === state.impostorMode ? 'active' : '';
-    button.textContent = label;
+    button.innerHTML = `
+      <span class="material-symbols-outlined ${value === state.impostorMode ? 'filled' : ''}">${icon}</span>
+      <span class="label">${label}</span>
+    `;
     button.addEventListener('click', () => {
       state.impostorMode = value;
-      Array.from(modes.children).forEach((b) => {
-        b.className = '';
-      });
-      button.className = 'active';
+      render();
     });
     modes.append(button);
   });
 
-  modeBlock.append(modeLabel, modes);
+  modeSection.append(modeLabel, modes);
 
-  const timerBlock = document.createElement('div');
-  timerBlock.className = 'field-stack';
-
-  const timerLabel = document.createElement('span');
-  timerLabel.textContent = 'Timer Duration';
-
-  const timerStepper = document.createElement('div');
-  timerStepper.className = 'timer-stepper';
-
-  const minus = document.createElement('button');
-  minus.type = 'button';
-  minus.textContent = '−';
-  minus.disabled = state.timerDuration <= 15;
-
-  const duration = document.createElement('strong');
-  duration.textContent = `${state.timerDuration}s`;
-
-  const plus = document.createElement('button');
-  plus.type = 'button';
-  plus.textContent = '+';
-  plus.disabled = state.timerDuration >= 300;
-
-  const updateTimerDOM = () => {
-    duration.textContent = `${state.timerDuration}s`;
-    minus.disabled = state.timerDuration <= 15;
-    plus.disabled = state.timerDuration >= 300;
-  };
-
-  minus.addEventListener('click', () => {
-    state.timerDuration = Math.max(15, state.timerDuration - 15);
-    updateTimerDOM();
-  });
-
-  plus.addEventListener('click', () => {
-    state.timerDuration = Math.min(300, state.timerDuration + 15);
-    updateTimerDOM();
-  });
-
-  timerStepper.append(minus, duration, plus);
-  timerBlock.append(timerLabel, timerStepper);
-
-  settingsSection.append(settingsTitle, impostorField, modeBlock, timerBlock);
+  grid.append(playersSection, settingsRight, modeSection);
 
   const footer = document.createElement('footer');
   footer.className = 'bottom-actions';
@@ -213,6 +250,8 @@ export function PGSScreen({ render }) {
   });
 
   footer.append(startButton);
-  screen.append(header, playersSection, settingsSection, footer);
+  
+  main.append(titleSection, grid, footer);
+  screen.append(header, main);
   return screen;
 }

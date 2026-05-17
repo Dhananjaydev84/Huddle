@@ -4,24 +4,25 @@ export function ResultScreen({ render }) {
   const screen = document.createElement('section');
   screen.className = 'screen result-screen';
 
-  const wordLabel = document.createElement('p');
-  wordLabel.className = 'result-label';
-  wordLabel.textContent = 'The word was';
+  const resultIcon = document.createElement('div');
+  resultIcon.className = 'result-icon';
+  resultIcon.innerHTML = '<span class="material-symbols-outlined filled">sports_esports</span>';
 
-  const word = document.createElement('h1');
-  word.className = 'result-word';
-  word.textContent = state.selectedWord?.word || '';
+  const title = document.createElement('h1');
+  title.className = 'result-title';
+  title.textContent = 'GAME ENDED';
 
-  const divider = document.createElement('div');
-  divider.className = 'result-divider';
+  const resultBox = document.createElement('div');
+  resultBox.className = 'result-box';
 
-  const impostorLabel = document.createElement('p');
-  impostorLabel.className = 'result-label';
-  impostorLabel.textContent = state.impostors.length === 1 ? 'The impostor was' : 'The impostors were';
+  const wordPara = document.createElement('p');
+  wordPara.innerHTML = `The word was <br/><span>${state.gameWord || state.selectedWord?.word || '???'}</span>`;
 
-  const impostors = document.createElement('h2');
-  impostors.className = 'result-impostors';
-  impostors.textContent = state.impostors.join(', ');
+  const impostorPara = document.createElement('p');
+  const impLabel = state.impostors.length === 1 ? 'The impostor was' : 'The impostors were';
+  impostorPara.innerHTML = `${impLabel} <br/><span>${state.impostors.join(', ')}</span>`;
+
+  resultBox.append(wordPara, impostorPara);
 
   const actions = document.createElement('div');
   actions.className = 'stacked-actions';
@@ -38,13 +39,13 @@ export function ResultScreen({ render }) {
   const home = document.createElement('button');
   home.className = 'ghost-button';
   home.type = 'button';
-  home.textContent = 'Home';
+  home.textContent = 'Home Menu';
   home.addEventListener('click', () => {
     state.screen = 'home';
     render();
   });
 
   actions.append(playAgain, home);
-  screen.append(wordLabel, word, divider, impostorLabel, impostors, actions);
+  screen.append(resultIcon, title, resultBox, actions);
   return screen;
 }
