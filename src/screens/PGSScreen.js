@@ -152,14 +152,21 @@ export function PGSScreen({ render }) {
 
   const disableTimerBtn = document.createElement('button');
   disableTimerBtn.style.fontSize = '10px';
-  disableTimerBtn.style.color = '#e3beb8';
+  disableTimerBtn.style.color = state.timerEnabled ? '#e3beb8' : 'var(--s-primary)';
   disableTimerBtn.style.display = 'flex';
   disableTimerBtn.style.alignItems = 'center';
   disableTimerBtn.style.gap = '4px';
   disableTimerBtn.style.border = '1px solid var(--s-outline-variant)';
   disableTimerBtn.style.padding = '2px 6px';
   disableTimerBtn.style.borderRadius = '8px';
-  disableTimerBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size: 12px;">timer_off</span> Disable';
+  disableTimerBtn.innerHTML = state.timerEnabled
+    ? '<span class="material-symbols-outlined" style="font-size: 12px;">timer_off</span> Disable'
+    : '<span class="material-symbols-outlined" style="font-size: 12px;">timer</span> Enable';
+  
+  disableTimerBtn.addEventListener('click', () => {
+    state.timerEnabled = !state.timerEnabled;
+    render();
+  });
   timerLabelContainer.append(disableTimerBtn);
 
   const timerControl = document.createElement('div');
@@ -167,9 +174,9 @@ export function PGSScreen({ render }) {
 
   const minusT = document.createElement('button');
   minusT.innerHTML = '<span class="material-symbols-outlined" style="font-size: 16px;">keyboard_arrow_left</span>';
-  minusT.disabled = state.timerDuration <= 15;
+  minusT.disabled = !state.timerEnabled || state.timerDuration <= 60;
   minusT.addEventListener('click', () => {
-      state.timerDuration = Math.max(15, state.timerDuration - 15);
+      state.timerDuration = Math.max(60, state.timerDuration - 60);
       render();
   });
 
@@ -181,18 +188,27 @@ export function PGSScreen({ render }) {
   valT.className = 'val';
   const minutes = Math.floor(state.timerDuration / 60);
   const seconds = String(state.timerDuration % 60).padStart(2, '0');
-  valT.textContent = `${minutes}:${seconds}`;
+  
   const unitT = document.createElement('span');
   unitT.style.fontSize = '9px';
   unitT.style.color = '#e3beb8';
   unitT.textContent = 'MINUTES';
+
+  if (!state.timerEnabled) {
+    valT.textContent = '--:--';
+    valT.style.opacity = '0.3';
+    unitT.style.opacity = '0.3';
+  } else {
+    valT.textContent = `${minutes}:${seconds}`;
+  }
+
   valTWrapper.append(valT, unitT);
 
   const plusT = document.createElement('button');
   plusT.innerHTML = '<span class="material-symbols-outlined" style="font-size: 16px;">keyboard_arrow_right</span>';
-  plusT.disabled = state.timerDuration >= 300;
+  plusT.disabled = !state.timerEnabled || state.timerDuration >= 3600;
   plusT.addEventListener('click', () => {
-      state.timerDuration = Math.min(300, state.timerDuration + 15);
+      state.timerDuration = Math.min(3600, state.timerDuration + 60);
       render();
   });
 

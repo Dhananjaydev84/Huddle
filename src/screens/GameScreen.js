@@ -67,6 +67,7 @@ export function GameScreen({ render }) {
   screen.append(starter, timer, footer);
 
   function updateTimer() {
+    if (!state.timerEnabled) return;
     timerText.textContent = formatTime(state.timeLeft);
     if (state.timeLeft <= 10) {
       timerText.style.color = 'var(--s-error)';
@@ -75,18 +76,22 @@ export function GameScreen({ render }) {
     }
   }
 
-  updateTimer();
-  state.timerInterval = setInterval(() => {
-    state.timeLeft -= 1;
+  if (state.timerEnabled) {
     updateTimer();
+    state.timerInterval = setInterval(() => {
+      state.timeLeft -= 1;
+      updateTimer();
 
-    if (state.timeLeft <= 0) {
-      clearInterval(state.timerInterval);
-      state.timerInterval = null;
-      state.screen = 'result';
-      render();
-    }
-  }, 1000);
+      if (state.timeLeft <= 0) {
+        clearInterval(state.timerInterval);
+        state.timerInterval = null;
+        state.screen = 'result';
+        render();
+      }
+    }, 1000);
+  } else {
+    timer.style.display = 'none';
+  }
 
   return screen;
 }
