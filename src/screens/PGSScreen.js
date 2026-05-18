@@ -7,14 +7,21 @@ import {
   pickGame
 } from '../state.js';
 
+let hasAnimated = false;
+
 export function PGSScreen({ render }) {
   clampImpostorCount();
 
   const screen = document.createElement('section');
   screen.className = 'screen pgs-screen';
+  if (!hasAnimated) {
+    screen.classList.add('animate');
+    hasAnimated = true;
+  }
 
   const header = document.createElement('header');
-  header.className = 'screen-header';
+  header.className = 'screen-header animate-reveal';
+  header.style.animationDelay = '0s';
 
   const backButton = document.createElement('button');
   backButton.className = 'back-button';
@@ -40,13 +47,16 @@ export function PGSScreen({ render }) {
   main.className = 'pgs-main';
 
   const titleSection = document.createElement('section');
+  titleSection.className = 'animate-reveal';
+  titleSection.style.animationDelay = '0.1s';
   titleSection.innerHTML = '<h2 class="screen-title text-on-surface">Imposter <span class="gradient-text">setup</span></h2>';
 
   const grid = document.createElement('div');
   grid.className = 'setup-grid';
 
   const playersSection = document.createElement('section');
-  playersSection.className = 'setup-section';
+  playersSection.className = 'setup-section animate-reveal';
+  playersSection.style.animationDelay = '0.2s';
 
   const playersTitle = document.createElement('span');
   playersTitle.className = 'section-label';
@@ -70,42 +80,18 @@ export function PGSScreen({ render }) {
     event.preventDefault();
     if(input.value.trim()) {
         addPlayer(input.value);
-        render();
+        input.value = '';
+        updateStateDOM();
     }
   });
 
   const playerList = document.createElement('div');
   playerList.className = 'player-list';
-
-  state.players.forEach((player) => {
-    const row = document.createElement('div');
-    row.className = 'player-row';
-
-    const name = document.createElement('span');
-    name.textContent = player;
-
-    const remove = document.createElement('button');
-    remove.className = 'icon-button';
-    remove.type = 'button';
-    remove.innerHTML = '<span class="material-symbols-outlined" style="font-size: 16px;">close</span>';
-    remove.addEventListener('click', () => {
-      deletePlayer(player);
-      render();
-    });
-
-    row.append(name, remove);
-    playerList.append(row);
-  });
-
   playersSection.append(playersTitle, addForm, playerList);
-  if (state.players.length < 3) {
-    const warning = document.createElement('p');
-    warning.className = 'player-warning';
-    warning.textContent = 'Minimum of 3 players required';
-    playersSection.append(warning);
-  }
 
   const settingsRight = document.createElement('div');
+  settingsRight.className = 'animate-reveal';
+  settingsRight.style.animationDelay = '0.3s';
   settingsRight.style.display = 'flex';
   settingsRight.style.flexDirection = 'column';
   settingsRight.style.gap = '12px';
@@ -218,7 +204,8 @@ export function PGSScreen({ render }) {
   settingsRight.append(impostorField, timerField);
 
   const modeSection = document.createElement('section');
-  modeSection.className = 'setup-section';
+  modeSection.className = 'setup-section animate-reveal';
+  modeSection.style.animationDelay = '0.4s';
 
   const modeLabel = document.createElement('span');
   modeLabel.className = 'section-label';
@@ -251,10 +238,11 @@ export function PGSScreen({ render }) {
   grid.append(playersSection, settingsRight, modeSection);
 
   const footer = document.createElement('footer');
-  footer.className = 'bottom-actions';
+  footer.className = 'bottom-actions animate-reveal';
+  footer.style.animationDelay = '0.5s';
 
   const startButton = document.createElement('button');
-  startButton.className = 'primary-button';
+  startButton.className = state.players.length >= 3 ? 'primary-button text-glow-active' : 'primary-button';
   startButton.type = 'button';
   startButton.textContent = 'Start Game';
   startButton.disabled = state.players.length < 3;
@@ -267,6 +255,44 @@ export function PGSScreen({ render }) {
 
   footer.append(startButton);
   
+  function updateStateDOM() {
+    playerList.innerHTML = '';
+    state.players.forEach((player) => {
+      const row = document.createElement('div');
+      row.className = 'player-row';
+      const name = document.createElement('span');
+      name.textContent = player;
+      const remove = document.createElement('button');
+      remove.className = 'icon-button';
+      remove.type = 'button';
+      remove.innerHTML = '<span class="material-symbols-outlined" style="font-size: 16px;">close</span>';
+      remove.addEventListener('click', () => {
+        deletePlayer(player);
+        updateStateDOM();
+      });
+      row.append(name, remove);
+      playerList.append(row);
+    });
+
+    const warning = playersSection.querySelector('.player-warning');
+    if (state.players.length < 3) {
+      if (!warning) {
+        const w = document.createElement('p');
+        w.className = 'player-warning';
+        w.textContent = 'Minimum of 3 players required';
+        playersSection.append(w);
+      }
+    } else if (warning) {
+      warning.remove();
+    }
+
+    valI.textContent = state.impostorCount;
+    startButton.disabled = state.players.length < 3;
+    startButton.className = state.players.length >= 3 ? 'primary-button text-glow-active' : 'primary-button';
+  }
+
+  updateStateDOM();
+
   main.append(titleSection, grid, footer);
   screen.append(header, main);
   return screen;

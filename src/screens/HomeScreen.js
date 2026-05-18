@@ -8,11 +8,13 @@ export function HomeScreen({ render }) {
   header.className = 'brand-header';
 
   const title = document.createElement('h1');
-  title.className = 'app-title gradient-text';
+  title.className = 'app-title gradient-text animate-reveal';
+  title.style.animationDelay = '0s';
   title.textContent = 'HUDDLE';
 
   const tagline = document.createElement('p');
-  tagline.className = 'tagline';
+  tagline.className = 'tagline animate-reveal';
+  tagline.style.animationDelay = '0.1s';
   tagline.textContent = 'Party games no mercy';
 
   header.append(title, tagline);
@@ -21,13 +23,13 @@ export function HomeScreen({ render }) {
   grid.className = 'game-grid';
 
   const imposterTile = document.createElement('button');
-  imposterTile.className = 'game-tile game-tile-active';
+  imposterTile.className = 'game-tile game-tile-active animate-reveal';
+  imposterTile.style.animationDelay = '0.2s';
   imposterTile.type = 'button';
   imposterTile.innerHTML = `
     <div class="tile-bg"></div>
     <span>Imposter</span>
     <small>The Social Deception Game</small>
-    <span class="material-symbols-outlined tile-icon">masks</span>
   `;
   imposterTile.addEventListener('click', () => {
     state.screen = 'pgs';
@@ -38,7 +40,8 @@ export function HomeScreen({ render }) {
 
   for (let index = 0; index < 3; index += 1) {
     const tile = document.createElement('div');
-    tile.className = 'game-tile game-tile-locked';
+    tile.className = 'game-tile game-tile-locked animate-reveal';
+    tile.style.animationDelay = `${0.3 + (index * 0.1)}s`;
     tile.innerHTML = '<span>?</span>';
     grid.append(tile);
   }

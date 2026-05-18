@@ -2,18 +2,21 @@ import { state } from '../state.js';
 
 export function ResultScreen({ render }) {
   const screen = document.createElement('section');
-  screen.className = 'screen result-screen';
+  screen.className = 'screen result-screen animate';
 
   const resultIcon = document.createElement('div');
-  resultIcon.className = 'result-icon';
+  resultIcon.className = 'result-icon animate-reveal';
+  resultIcon.style.animationDelay = '0s';
   resultIcon.innerHTML = '<span class="material-symbols-outlined filled">sports_esports</span>';
 
   const title = document.createElement('h1');
-  title.className = 'result-title';
+  title.className = 'result-title animate-reveal';
+  title.style.animationDelay = '0.1s';
   title.textContent = 'GAME ENDED';
 
   const resultBox = document.createElement('div');
-  resultBox.className = 'result-box';
+  resultBox.className = 'result-box animate-reveal';
+  resultBox.style.animationDelay = '0.2s';
 
   const wordPara = document.createElement('p');
   wordPara.innerHTML = `The word was <br/><span>${state.gameWord || state.selectedWord?.word || '???'}</span>`;
@@ -25,7 +28,8 @@ export function ResultScreen({ render }) {
   resultBox.append(wordPara, impostorPara);
 
   const actions = document.createElement('div');
-  actions.className = 'stacked-actions';
+  actions.className = 'stacked-actions animate-reveal';
+  actions.style.animationDelay = '0.3s';
 
   const playAgain = document.createElement('button');
   playAgain.className = 'primary-button';
