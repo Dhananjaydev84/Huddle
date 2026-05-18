@@ -1,4 +1,4 @@
-import { state } from '../state.js';
+import { state, hasCrown } from '../state.js';
 
 export function ResultScreen({ render }) {
   const screen = document.createElement('section');
@@ -23,7 +23,8 @@ export function ResultScreen({ render }) {
 
   const impostorPara = document.createElement('p');
   const impLabel = state.impostors.length === 1 ? 'The impostor was' : 'The impostors were';
-  impostorPara.innerHTML = `${impLabel} <br/><span>${state.impostors.join(', ')}</span>`;
+  const displayNames = state.impostors.map(name => hasCrown(name) ? `${name} 👑` : name);
+  impostorPara.innerHTML = `${impLabel} <br/><span>${displayNames.join(', ')}</span>`;
 
   resultBox.append(wordPara, impostorPara);
 

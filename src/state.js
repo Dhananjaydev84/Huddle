@@ -100,3 +100,8 @@ function shuffle(items) {
   }
   return items;
 }
+
+export function hasCrown(name) {
+  const crowned = ['dj', 'devan', 'dhananjay'];
+  return crowned.includes(name.trim().toLowerCase());
+}

@@ -1,4 +1,4 @@
-import { state, getPlayerRole } from '../state.js';
+import { state, getPlayerRole, hasCrown } from '../state.js';
 
 export function RevealScreen({ render }) {
   const player = state.players[state.revealIndex];
@@ -18,7 +18,7 @@ export function RevealScreen({ render }) {
 
   const name = document.createElement('h1');
   name.className = 'current-player gradient-text';
-  name.textContent = player;
+  name.textContent = hasCrown(player) ? `${player} 👑` : player;
 
   const card = document.createElement('button');
   card.className = 'flip-card';

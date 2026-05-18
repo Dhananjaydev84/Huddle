@@ -4,7 +4,8 @@ import {
   deletePlayer,
   getMaxImpostors,
   clampImpostorCount,
-  pickGame
+  pickGame,
+  hasCrown
 } from '../state.js';
 
 let hasAnimated = false;
@@ -261,7 +262,7 @@ export function PGSScreen({ render }) {
       const row = document.createElement('div');
       row.className = 'player-row';
       const name = document.createElement('span');
-      name.textContent = player;
+      name.textContent = hasCrown(player) ? `${player} 👑` : player;
       const remove = document.createElement('button');
       remove.className = 'icon-button';
       remove.type = 'button';
