@@ -55,6 +55,11 @@ export function RevealScreen({ render }) {
   const backLabel = document.createElement('span');
   backLabel.className = 'role-label pass-label';
 
+  const hintLabel = document.createElement('span');
+  hintLabel.className = 'role-label pass-label';
+  hintLabel.style.marginTop = '16px';
+  hintLabel.style.display = 'none';
+
   const backWord = document.createElement('h2');
   backWord.className = 'font-archivo';
   backWord.style.cssText = 'font-size: 32px; color: var(--s-primary); text-transform: uppercase; margin: 16px 0;';
@@ -67,7 +72,7 @@ export function RevealScreen({ render }) {
     <div class="card-corner-br"></div>
     <div class="card-scanlines"></div>
   `;
-  backContent.append(backLabel, backWord, backInstruction);
+  backContent.append(backLabel, hintLabel, backWord, backInstruction);
 
   const backGlow = document.createElement('div');
   backGlow.className = 'card-glow';
@@ -111,25 +116,32 @@ export function RevealScreen({ render }) {
     } else if (cardState === 'word') {
       card.classList.add('is-flipped');
       if (role.type === 'impostor') {
-        backLabel.textContent = 'YOU ARE THE IMPOSTER';
-        if (state.impostorMode === 'similar') {
+        backLabel.classList.remove('pass-label');
+        backLabel.innerHTML = '<div class="font-archivo" style="text-align: center; line-height: 1.1; text-transform: uppercase;"><span style="font-size: 24px; opacity: 1;">YOU ARE THE</span><br><span style="color: #ef4647; font-size: 44px; letter-spacing: 2px;">IMPOSTER</span></div>';
+        if (state.impostorMode === 'hint') {
+          hintLabel.style.display = 'block';
+          hintLabel.textContent = 'YOUR HINT IS';
           backWord.textContent = role.text;
+          backWord.className = 'font-archivo';
+        } else if (state.impostorMode === 'similar') {
+          hintLabel.style.display = 'block';
+          hintLabel.textContent = 'SIMILAR WORD';
+          backWord.textContent = role.text;
+          backWord.className = 'font-archivo';
         } else {
-          backWord.textContent = '???';
+          hintLabel.style.display = 'none';
+          backWord.textContent = 'YOU GOT NOTHING';
           backWord.className = 'font-archivo impostor-word';
         }
-        backInstruction.textContent = state.impostorMode === 'hint' ? 'TAP FOR HINT' : 'TAP TO HIDE';
+        backInstruction.textContent = 'TAP TO HIDE';
       } else {
+        backLabel.classList.add('pass-label');
         backLabel.textContent = 'THE WORD IS';
+        hintLabel.style.display = 'none';
         backWord.textContent = role.text;
+        backWord.className = 'font-archivo';
         backInstruction.textContent = 'TAP TO HIDE';
       }
-      nextButton.classList.add('hidden');
-    } else if (cardState === 'hint') {
-      card.classList.add('is-flipped');
-      backLabel.textContent = 'CATEGORY HINT';
-      backWord.textContent = state.game.category || 'NO HINT';
-      backInstruction.textContent = 'TAP TO HIDE';
       nextButton.classList.add('hidden');
     } else if (cardState === 'hidden') {
       card.classList.remove('is-flipped');
@@ -143,12 +155,6 @@ export function RevealScreen({ render }) {
     if (cardState === 'init') {
       cardState = 'word';
     } else if (cardState === 'word') {
-      if (role.type === 'impostor' && state.impostorMode === 'hint') {
-        cardState = 'hint';
-      } else {
-        cardState = 'hidden';
-      }
-    } else if (cardState === 'hint') {
       cardState = 'hidden';
     } else if (cardState === 'hidden') {
       // reveal again

@@ -30,8 +30,8 @@ export function render() {
 loadPlayers();
 render();
 
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).catch(() => {});
-  });
-}
+// if ('serviceWorker' in navigator) {
+//   window.addEventListener('load', () => {
+//     navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).catch(() => {});
+//   });
+// }
