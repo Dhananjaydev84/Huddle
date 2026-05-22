@@ -10,6 +10,18 @@ import {
 
 let hasAnimated = false;
 
+/* Reusable error-shake micro-interaction */
+function triggerShake(element, glowTarget) {
+  if (!element || element.classList.contains('shake-error')) return;
+  const glow = glowTarget || element;
+  element.classList.add('shake-error');
+  glow.classList.add('error-glow');
+  element.addEventListener('animationend', () => {
+    element.classList.remove('shake-error');
+    glow.classList.remove('error-glow');
+  }, { once: true });
+}
+
 export function PGSScreen({ render }) {
   clampImpostorCount();
 
@@ -109,21 +121,32 @@ export function PGSScreen({ render }) {
 
   const minusI = document.createElement('button');
   minusI.innerHTML = '<span class="material-symbols-outlined" style="font-size: 16px;">remove</span>';
+  if (state.impostorCount <= 1) minusI.classList.add('control-limit');
   minusI.addEventListener('click', () => {
-      state.impostorCount = Math.max(1, state.impostorCount - 1);
-      render();
+    if (state.impostorCount <= 1) {
+      triggerShake(impostorControl, impostorControl);
+      return;
+    }
+    state.impostorCount = Math.max(1, state.impostorCount - 1);
+    render();
   });
 
   const valI = document.createElement('span');
   valI.className = 'val';
   valI.textContent = state.impostorCount;
 
+  const maxI = getMaxImpostors();
   const plusI = document.createElement('button');
   plusI.innerHTML = '<span class="material-symbols-outlined" style="font-size: 16px;">add</span>';
+  if (state.impostorCount >= maxI) plusI.classList.add('control-limit');
   plusI.addEventListener('click', () => {
-      const max = getMaxImpostors();
-      state.impostorCount = Math.min(max, state.impostorCount + 1);
-      render();
+    const max = getMaxImpostors();
+    if (state.impostorCount >= max) {
+      triggerShake(impostorControl, impostorControl);
+      return;
+    }
+    state.impostorCount = Math.min(max, state.impostorCount + 1);
+    render();
   });
 
   impostorControl.append(minusI, valI, plusI);
@@ -161,10 +184,15 @@ export function PGSScreen({ render }) {
 
   const minusT = document.createElement('button');
   minusT.innerHTML = '<span class="material-symbols-outlined" style="font-size: 16px;">keyboard_arrow_left</span>';
-  minusT.disabled = !state.timerEnabled || state.timerDuration <= 60;
+  if (!state.timerEnabled || state.timerDuration <= 60) minusT.classList.add('control-limit');
   minusT.addEventListener('click', () => {
-      state.timerDuration = Math.max(60, state.timerDuration - 60);
-      render();
+    if (!state.timerEnabled) return;
+    if (state.timerDuration <= 60) {
+      triggerShake(timerControl, timerControl);
+      return;
+    }
+    state.timerDuration = Math.max(60, state.timerDuration - 60);
+    render();
   });
 
   const valTWrapper = document.createElement('div');
@@ -193,10 +221,15 @@ export function PGSScreen({ render }) {
 
   const plusT = document.createElement('button');
   plusT.innerHTML = '<span class="material-symbols-outlined" style="font-size: 16px;">keyboard_arrow_right</span>';
-  plusT.disabled = !state.timerEnabled || state.timerDuration >= 3600;
+  if (!state.timerEnabled || state.timerDuration >= 3600) plusT.classList.add('control-limit');
   plusT.addEventListener('click', () => {
-      state.timerDuration = Math.min(3600, state.timerDuration + 60);
-      render();
+    if (!state.timerEnabled) return;
+    if (state.timerDuration >= 3600) {
+      triggerShake(timerControl, timerControl);
+      return;
+    }
+    state.timerDuration = Math.min(3600, state.timerDuration + 60);
+    render();
   });
 
   timerControl.append(minusT, valTWrapper, plusT);
@@ -215,11 +248,18 @@ export function PGSScreen({ render }) {
   const modes = document.createElement('div');
   modes.className = 'segmented-control';
 
-  [
+  const modeOptions = [
     ['hint', 'Hint', 'lightbulb'],
     ['similar', 'Similar Word', 'record_voice_over'],
     ['nothing', 'None', 'block']
-  ].forEach(([value, label, icon]) => {
+  ];
+
+  // Sliding indicator element
+  const indicator = document.createElement('div');
+  indicator.className = 'segment-indicator';
+  modes.append(indicator);
+
+  modeOptions.forEach(([value, label, icon]) => {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = value === state.impostorMode ? 'active' : '';
@@ -228,10 +268,36 @@ export function PGSScreen({ render }) {
       <span class="label">${label}</span>
     `;
     button.addEventListener('click', () => {
+      if (state.impostorMode === value) return;
       state.impostorMode = value;
-      render();
+
+      // Update button states in-place (no full re-render)
+      modes.querySelectorAll('button').forEach((btn) => {
+        const isActive = btn === button;
+        btn.classList.toggle('active', isActive);
+        const iconEl = btn.querySelector('.material-symbols-outlined');
+        if (iconEl) iconEl.classList.toggle('filled', isActive);
+      });
+
+      // Slide indicator to the clicked button
+      indicator.style.left = button.offsetLeft + 'px';
+      indicator.style.width = button.offsetWidth + 'px';
     });
     modes.append(button);
+  });
+
+  // Position indicator after layout, then enable transitions
+  requestAnimationFrame(() => {
+    const activeIndex = modeOptions.findIndex(([v]) => v === state.impostorMode);
+    const buttons = modes.querySelectorAll('button');
+    const activeBtn = buttons[activeIndex];
+    if (activeBtn) {
+      indicator.style.left = activeBtn.offsetLeft + 'px';
+      indicator.style.top = activeBtn.offsetTop + 'px';
+      indicator.style.width = activeBtn.offsetWidth + 'px';
+      indicator.style.height = activeBtn.offsetHeight + 'px';
+      requestAnimationFrame(() => indicator.classList.add('ready'));
+    }
   });
 
   modeSection.append(modeLabel, modes);
@@ -243,12 +309,14 @@ export function PGSScreen({ render }) {
   footer.style.animationDelay = '0.5s';
 
   const startButton = document.createElement('button');
-  startButton.className = state.players.length >= 3 ? 'primary-button text-glow-active' : 'primary-button';
+  startButton.className = state.players.length >= 3 ? 'primary-button text-glow-active' : 'primary-button control-limit';
   startButton.type = 'button';
   startButton.textContent = 'Start Game';
-  startButton.disabled = state.players.length < 3;
   startButton.addEventListener('click', () => {
-    if (state.players.length < 3) return;
+    if (state.players.length < 3) {
+      triggerShake(startButton, startButton);
+      return;
+    }
     pickGame();
     state.screen = 'reveal';
     render();
@@ -288,8 +356,7 @@ export function PGSScreen({ render }) {
     }
 
     valI.textContent = state.impostorCount;
-    startButton.disabled = state.players.length < 3;
-    startButton.className = state.players.length >= 3 ? 'primary-button text-glow-active' : 'primary-button';
+    startButton.className = state.players.length >= 3 ? 'primary-button text-glow-active' : 'primary-button control-limit';
   }
 
   updateStateDOM();
